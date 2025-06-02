@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Escolar</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(120deg, #e0f7fa 60%, #b3e5fc 100%);
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .main-content {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+        }
+        .container {
+            background: #fff;
+            padding: 32px 28px;
+            border-radius: 18px;
+            width: 100%;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0, 150, 255, 0.07);
+            animation: fadeSlideIn 0.7s forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        @keyframes fadeSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        h1 {
+            text-align: center;
+            color: #0288d1;
+            margin-bottom: 18px;
+            font-size: 1.7rem;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            user-select: none;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 11px 12px;
+            margin-top: 5px;
+            margin-bottom: 16px;
+            border: 1.7px solid #b3e5fc;
+            border-radius: 7px;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.4s;
+            background: #f9fdff;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #0288d1;
+            outline: none;
+            box-shadow: 0 0 7px 2px #b3e5fc;
+            background: #e3f5fd;
+        }
+        .avisoFrequencia {
+            color: #cc0000;
+            font-weight: 600;
+            font-size: 0.92rem;
+            margin-top: -12px;
+            margin-bottom: 10px;
+            user-select: none;
+            display: none;
+        }
+        button {
+            background: linear-gradient(90deg, #0288d1 70%, #26c6da 100%);
+            color: white;
+            font-weight: 700;
+            padding: 13px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.13rem;
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(2,136,209,0.07);
+            transition: background 0.3s, transform 0.16s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #026ba1 70%, #22b8c9 100%);
+            transform: translateY(-2px) scale(1.025);
+        }
+        h2 {
+            margin-top: 23px;
+            border-bottom: 1.5px solid #0288d1;
+            padding-bottom: 5px;
+            color: #0288d1;
+            font-size: 1.13rem;
+        }
+        .resultado {
+            background: #e3f5fd;
+            border: 1.5px solid #0288d1;
+            border-radius: 10px;
+            padding: 17px 13px;
+            margin-top: 13px;
+            font-size: 1.14rem;
+            line-height: 1.6;
+            color: #01557a;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.45s, transform 0.45s, background-color 0.45s, border-color 0.45s;
+            min-height: 42px;
+        }
+        .resultado.mostrar {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .resultado.error {
+            background: #ffe5e5;
+            border-color: #cc0000;
+            color: #900000;
+        }
+        .resultado p {
+            margin: 7px 0;
+        }
+        .resultado strong, .resultado .destaque {
+            color: #0277bd;
+            font-weight: 700;
+        }
+        .resultado .icone {
+            font-size: 1.25em;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .resultado p.error {
+            color: #cc0000 !important;
+            font-weight: 700;
+        }
+        @media (max-width: 600px) {
+            .main-content {
+                max-width: 98vw;
+                padding: 0 2vw;
+            }
+            .container {
+                padding: 13vw 4vw;
+                max-width: 99vw;
+            }
+            button { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <!-- Cálculo de Faltas/Presença -->
+        <section class="container" style="animation-delay: 0s;">
+            <h1>Cálculo de Faltas</h1>
+            <form id="formulario-faltas" onsubmit="enviarFaltas(event)">
+                <label for="materia_faltas">Matéria:
+                    <input type="text" id="materia_faltas" placeholder="Ex: Matemática" required>
+                </label>
+                <label for="aulastotal">Aulas no bimestre:
+                    <input type="number" id="aulastotal" required min="1" step="1" placeholder="Ex: 40">
+                </label>
+                <label for="faltas">Faltas:
+                    <input type="number" id="faltas" required min="0" step="1" placeholder="Ex: 2">
+                </label>
+                <button type="submit">Calcular Percentual de Presença</button>
+            </form>
+            <h2>Resultado:</h2>
+            <div id="resultado-faltas" class="resultado"></div>
+        </section>
+
+        <!-- Calculadora de Média -->
+        <section class="container" style="animation-delay: 0.2s;">
+            <h1>Calculadora de Média 📚</h1>
+            <form id="formulario-media" onsubmit="enviarMedia(event)">
+                <label>Seu Nome:
+                    <input type="text" id="nome" required placeholder="Digite seu nome" aria-label="Seu nome">
+                </label>
+                <label>Matéria:
+                    <input type="text" id="materia_media" required placeholder="Ex: Matemática" aria-label="Matéria">
+                </label>
+                <label>Frequência (%):
+                    <input type="number" id="frequencia" required min="0" max="100" step="0.01" placeholder="0 a 100" aria-label="Frequência">
+                    <div id="avisoFrequencia" class="avisoFrequencia"></div>
+                </label>
+                <label>Nota com Professor:
+                    <input type="number" id="nota_com_professor" required min="0" max="10" step="0.01" placeholder="0 a 10" aria-label="Nota com professor">
+                </label>
+                <label>Nota Geral da Prova:
+                    <input type="number" id="nota_da_prova" required min="0" max="10" step="0.01" placeholder="0 a 10" aria-label="Nota geral da prova">
+                </label>
+                <button type="submit">Calcular Média</button>
+            </form>
+            <h2>Resultado:</h2>
+            <div id="resultado-media" class="resultado"></div>
+        </section>
+    </div>
+    <script>
+        // Função de arredondar
+        function arredondar(num) {
+            return Math.round(num * 10) / 10;
+        }
+
+        // Calculadora de Média
+        function enviarMedia(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nome').value.trim();
+            const materia = document.getElementById('materia_media').value.trim();
+            const frequenciaStr = document.getElementById('frequencia').value.trim();
+            const notaProfStr = document.getElementById('nota_com_professor').value.trim();
+            const notaProvaStr = document.getElementById('nota_da_prova').value.trim();
+            const resultadoDiv = document.getElementById('resultado-media');
+            const avisoFrequenciaDiv = document.getElementById('avisoFrequencia');
+
+            avisoFrequenciaDiv.style.display = 'none';
+            avisoFrequenciaDiv.textContent = '';
+            resultadoDiv.classList.remove('error');
+            resultadoDiv.style.color = '#01557a';
+
+            if (!nome || !materia) {
+                resultadoDiv.innerHTML = '<p class="error">Por favor, preencha seu nome e a matéria.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+
+            const frequencia = parseFloat(frequenciaStr);
+            const notaProf = parseFloat(notaProfStr);
+            const notaProva = parseFloat(notaProvaStr);
+
+            if (isNaN(frequencia) || frequencia < 0 || frequencia > 100) {
+                resultadoDiv.innerHTML = '<p class="error">Frequência deve ser um valor entre 0 e 100.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+            if (isNaN(notaProf) || notaProf < 0 || notaProf > 10) {
+                resultadoDiv.innerHTML = '<p class="error">Nota com o professor deve ser entre 0 e 10.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+            if (isNaN(notaProva) || notaProva < 0 || notaProva > 10) {
+                resultadoDiv.innerHTML = '<p class="error">Nota da prova deve ser entre 0 e 10.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+
+            if (frequencia < 90) {
+                avisoFrequenciaDiv.textContent = '⚠️ Atenção: Sua frequência está abaixo de 90%. Cuidado com as faltas!';
+                avisoFrequenciaDiv.style.display = 'block';
+            } else {
+                avisoFrequenciaDiv.style.display = 'none';
+                avisoFrequenciaDiv.textContent = '';
+            }
+
+            const resultado1 = arredondar(frequencia / 10);
+            const resultado_soma = notaProf + notaProva + resultado1;
+            const mediafinal = arredondar(resultado_soma / 3);
+
+            let mensagem_media = '';
+            let reprovado = false;
+            if (mediafinal >= 7 && frequencia >= 75) {
+                mensagem_media = '<span class="icone">🎉</span>Parabéns! Você foi aprovado';
+            } else if (frequencia < 75) {
+                mensagem_media = '<span class="icone">❌</span>Frequência insuficiente para aprovação';
+                reprovado = true;
+            } else if (mediafinal < 7) {
+                mensagem_media = '<span class="icone">📚</span>Você está de recuperação. Estude mais!';
+                reprovado = true;
+            } else {
+                mensagem_media = 'Situação indeterminada.';
+            }
+
+            const saudacao = `Olá, <span class="destaque">${nome}</span>`;
+
+            resultadoDiv.innerHTML = `
+                <p>${saudacao}</p>
+                <p>Matéria: <span class="destaque">${materia}</span></p>
+                <p>Resultado da Frequência: <strong>${resultado1}</strong></p>
+                <p>Soma das Notas + Frequência: <strong>${resultado_soma}</strong></p>
+                <p>Média Final: <strong>${mediafinal}</strong></p>
+                <p><strong>${mensagem_media}</strong></p>
+            `;
+            resultadoDiv.classList.add('mostrar');
+
+            if (reprovado) {
+                resultadoDiv.classList.add('error');
+            } else {
+                resultadoDiv.classList.remove('error');
+            }
+        }
+
+        // Cálculo de Faltas/Presença
+        function enviarFaltas(event) {
+            event.preventDefault();
+
+            var materia = document.getElementById('materia_faltas').value.trim();
+            var aulastotal = parseInt(document.getElementById('aulastotal').value);
+            var faltas = parseInt(document.getElementById('faltas').value);
+            var resultadoDiv = document.getElementById('resultado-faltas');
+
+            resultadoDiv.classList.remove('error');
+            resultadoDiv.style.color = '#01557a';
+
+            if (!materia) {
+                resultadoDiv.innerHTML = '<p class="error">Por favor, preencha o nome da matéria.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+            if (isNaN(aulastotal) || aulastotal <= 0) {
+                resultadoDiv.innerHTML = '<p class="error">Total de aulas deve ser maior que zero.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+            if (isNaN(faltas) || faltas < 0) {
+                resultadoDiv.innerHTML = '<p class="error">Faltas deve ser zero ou mais.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+            if (faltas > aulastotal) {
+                resultadoDiv.innerHTML = '<p class="error">Faltas não pode ser maior que o total de aulas.</p>';
+                resultadoDiv.classList.add('mostrar');
+                return;
+            }
+
+            var presencas = aulastotal - faltas;
+            var percentual = (presencas * 100) / aulastotal;
+
+            resultadoDiv.innerHTML = `<span class="icone">🟦</span>Você tem <strong>${percentual.toFixed(1)}%</strong> de presença em <strong>${materia}</strong>.`;
+            resultadoDiv.classList.add('mostrar');
+        }
+    </script>
+</body>
+</html>
